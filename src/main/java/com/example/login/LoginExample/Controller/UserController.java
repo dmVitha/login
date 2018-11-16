@@ -1,37 +1,53 @@
 package com.example.login.LoginExample.Controller;
 
 import com.example.login.LoginExample.Exception.ResourceNotFoundException;
+import com.example.login.LoginExample.Models.Complain;
 import com.example.login.LoginExample.Models.User;
 import com.example.login.LoginExample.PayLoad.*;
 
+import com.example.login.LoginExample.Repository.ComplainRepository;
 import com.example.login.LoginExample.Repository.UserRepository;
 
 import com.example.login.LoginExample.Security.*;
 
-
+import com.example.login.LoginExample.Security.JwtTokenProvider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins="http://localhost:4200",allowedHeaders="*")
 public class UserController {
 
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private ComplainRepository complainRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @GetMapping("/user/me")
-    @PreAuthorize("hasRole('USER')")
+   // @PreAuthorize("hasRole('ROLE_USER')")
     public UserSummary getCurrentUser(@CurrentUser UserPrincipal currentUser) {
         UserSummary userSummary = new UserSummary(currentUser.getId(), currentUser.getUsername(), currentUser.getName());
         return userSummary;
     }
+
+    @GetMapping("/user/me/{token}")
+    public Optional<User>  whoami(@PathVariable(value = "token") String token) {
+        return userRepository.findById(jwtTokenProvider.getUserIdFromJWT(token));
+    }
+
+
 
     @GetMapping("/user/checkUsernameAvailability")
     public UserIdentityAvailability checkUsernameAvailability(@RequestParam(value = "username") String username) {
@@ -57,5 +73,10 @@ public class UserController {
         return userProfile;
     }
 
+    @PostMapping("/user/complain")
+    public void makeComplain(@RequestBody Complain complain){
+        complainRepository.save(complain);
+    }
 
+     
 }

@@ -40,7 +40,15 @@ public class User  {
     @Size(max = 100)
     private String password;
 
+    public boolean isAdmin() {
+        return isAdmin;
+    }
 
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
+    }
+
+    private boolean isAdmin;
 
 
     @ManyToMany(fetch = FetchType.LAZY)
